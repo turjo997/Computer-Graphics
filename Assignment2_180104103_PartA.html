@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+   <title>Assignment 2: Part A</title>
+   <body>
+      <canvas width = "850" height = "550" id = "my_Canvas"></canvas>
+      <script>
+         var canvas = document.getElementById('my_Canvas');
+         gl = canvas.getContext('webgl'); 
+
+
+        
+         var vertexShaderSource =
+           `attribute vec3 coordinates;
+            void main(void) {
+                gl_Position = vec4(coordinates, 1.0);
+                //gl_PointSize = 5.0;
+                gl_PointSize = distance(vec3(coordinates.x,coordinates.y,coordinates.z),vec3(0.0,0.0,0.0))*15.0;
+            }`;
+
+            
+
+         
+         var fragmentShaderSource =
+            `void main(void) {
+                gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+            }`;
+
+
+
+            var vsh = gl.createShader( gl.VERTEX_SHADER );
+            gl.shaderSource( vsh, vertexShaderSource );
+            gl.compileShader( vsh );
+            
+            var fsh = gl.createShader( gl.FRAGMENT_SHADER );
+            gl.shaderSource( fsh, fragmentShaderSource );
+            gl.compileShader( fsh );
+		 
+		 
+		 
+               
+            var prog = gl.createProgram(); 
+            
+            gl.attachShader( prog, vsh ); 
+            gl.attachShader( prog, fsh );
+            gl.linkProgram( prog ); 
+            gl.useProgram(prog);
+		 
+		 
+	     /************Linking CPU to GPU*******************/
+		 
+        var coords_location = gl.getAttribLocation(prog, "coordinates");
+		  var radius = 0.04; 
+        var coords = [];
+
+
+         for(let i=0.0; i<= Math.PI; i+=0.05){
+
+            var x = i* Math.cos(i)*radius ;
+            var y = i* Math.sin(i)*radius ;
+            var z = 0.0;
+
+            coords.push(x);
+            coords.push(y);
+            coords.push(z);
+
+         } 
+
+   
+         var x=Math.PI;
+         var size=Math.PI;
+
+
+		 /*************Buffer Memory***********************/
+		 
+		 var buffer_memory=gl.createBuffer();
+		 
+		 gl.bindBuffer(gl.ARRAY_BUFFER, buffer_memory);
+		 gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(coords), gl.STATIC_DRAW);
+		 gl.vertexAttribPointer(coords_location, 3, gl.FLOAT, false, 0, 0);
+       gl.enableVertexAttribArray(coords_location);
+
+       gl.clearColor(1.0, 1.0, 0.8, 1.0);
+       gl.clear(gl.COLOR_BUFFER_BIT);
+       gl.drawArrays(gl.POINTS, 0, coords.length);
+            
+         canvas.onmousedown = function ()
+         {  
+
+            
+            x+=0.15;
+            size+=4*0.2;
+            
+            for(let i=x; i<=size; i+=0.2){
+                  
+               var x1 = i*Math.cos(i)*radius ;
+               var y1 = i*Math.sin(i)*radius ;
+               var z1 = 0.0;
+
+                coords.push(x1);
+                coords.push(y1);
+                coords.push(z1);
+            }
+
+			x=size;
+
+			gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(coords), gl.STATIC_DRAW);
+			gl.clearColor(1.0, 1.0, 0.8, 1.0);
+         gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.drawArrays(gl.POINTS, 0, coords.length); 
+         
+         
+         };
+
+
+
+      </script>
+   </body>
+</html>
