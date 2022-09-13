@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+   <title>Assignment</title>
+   <body>
+      <canvas width = "600" height = "600" id = "my_Canvas"></canvas>
+
+      <script>
+         var canvas = document.getElementById('my_Canvas');
+         gl = canvas.getContext('webgl'); 
+
+
+        
+         var vertexShaderSource =
+           `attribute vec3 coordinates;
+            void main(void) {
+                gl_Position = vec4(coordinates, 1.0);
+                gl_PointSize = 2.5;
+            }`;
+
+                 
+        var fragmentShaderSource =
+        `precision mediump float;
+            uniform vec3 u_color;
+            uniform float u_shiftColor;
+
+            void main() {
+                gl_FragColor = vec4(u_color.x + u_shiftColor, u_color.y - u_shiftColor ,  u_color.z ,  1.0);
+            }`;
+
+            var vsh = gl.createShader( gl.VERTEX_SHADER );
+            gl.shaderSource( vsh, vertexShaderSource );
+            gl.compileShader( vsh );
+            
+            var fsh = gl.createShader( gl.FRAGMENT_SHADER );
+            gl.shaderSource( fsh, fragmentShaderSource );
+            gl.compileShader( fsh );
+		 
+	
+            var prog = gl.createProgram(); 
+            
+            gl.attachShader( prog, vsh ); 
+            gl.attachShader( prog, fsh );
+            gl.linkProgram( prog ); 
+            gl.useProgram(prog);
+		 
+		 
+	     /************Linking CPU to GPU*******************/
+		 
+        var coords_location = gl.getAttribLocation(prog, "coordinates");
+	
+        var a = 1; 
+        var theta = 0;
+        var coords = [];
+        var k = 2;  
+
+         for(let i = 0; i< 2000; i++){
+            theta += (Math.PI *2) / 2000;
+            var x = a * Math.cos(k * theta) * Math.cos(theta);
+            var y = a * Math.cos(k * theta) * Math.sin(theta);
+            var z = 0.0;
+            coords.push(x);
+            coords.push(y);
+            coords.push(z);
+         }
+
+
+         var x=Math.PI;
+         var size=Math.PI;
+
+		 /*************Buffer Memory***********************/
+		 
+		 var buffer_memory=gl.createBuffer();
+		 
+		 gl.bindBuffer(gl.ARRAY_BUFFER, buffer_memory);
+		 gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(coords), gl.STATIC_DRAW);
+		 gl.vertexAttribPointer(coords_location, 3, gl.FLOAT, false, 0, 0);
+         gl.enableVertexAttribArray(coords_location);
+
+         var u_color_location = gl.getUniformLocation(prog, "u_color");
+	     var color = new Float32Array( [0.0, 1.0, 0.0] );
+	     gl.uniform3fv(u_color_location,  color);
+
+
+         var u_shift_ColorLocation = gl.getUniformLocation(prog, "u_shiftColor");
+    	 var shift = 0.0;
+	     gl.uniform1f(u_shift_ColorLocation, shift);
+
+
+         gl.clearColor(1.0, 1.0, 0.8, 1.0);
+         gl.clear(gl.COLOR_BUFFER_BIT);
+         gl.drawArrays(gl.POINTS, 0, coords.length);
+
+         var cnt = 0;
+         
+         canvas.onmousedown = function ()
+         { 
+            cnt++;
+            
+            if(cnt % 2 !=0){
+                shift = shift + 1.0;
+                gl.uniform1f(u_shift_ColorLocation, shift);
+            }else{
+
+                shift = shift - 1.0;
+                gl.uniform1f(u_shift_ColorLocation, shift);
+            }
+
+        
+          theta = 0;
+          coords = [];
+          k += 1;  
+
+         for(let i = 0; i<= 2000*k; i++){
+            theta += (Math.PI *2) / 2000;
+            var x = Math.cos(k * theta) * Math.cos(theta);
+            var y = Math.cos(k * theta) * Math.sin(theta);
+            var z = 0.0;
+            coords.push(x);
+            coords.push(y);
+            coords.push(z);
+
+         }
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer_memory); 
+			gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(coords), gl.STATIC_DRAW);
+			gl.clearColor(1.0, 1.0, 0.8, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.drawArrays(gl.POINTS, 0, coords.length); 
+         
+         
+         };
+         
+
+
+      </script>
+   </body>
+</html>
